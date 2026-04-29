@@ -38,7 +38,8 @@ export function createPond(container: HTMLElement): PondHandle {
 
   // Analytic state
   const stones: AnalyticStone[] = [];
-  const emittedPairs = new Map<string, Intersection>();
+  const emittedPairs = new Set<string>();
+  const pendingEmissions: Intersection[] = [];
   const pairKey = (a: UUID, b: UUID) => (a < b ? `${a}|${b}` : `${b}|${a}`);
 
   // Hover state
@@ -204,23 +205,18 @@ export function createPond(container: HTMLElement): PondHandle {
     getIntersections(): Intersection[] {
       const wfs = this.getWavefronts();
       const now = performance.now();
-      const out: Intersection[] = [];
       for (let i = 0; i < wfs.length; i++) {
         for (let j = i + 1; j < wfs.length; j++) {
           const a = wfs[i];
           const b = wfs[j];
+          const k = pairKey(a.stoneId, b.stoneId);
+          if (emittedPairs.has(k)) continue;
           const dx = b.cx - a.cx;
           const dy = b.cy - a.cy;
           const d = Math.hypot(dx, dy);
           if (d === 0) continue;
           if (d >= a.radius + b.radius) continue;
           if (d <= Math.abs(a.radius - b.radius)) continue;
-          const k = pairKey(a.stoneId, b.stoneId);
-          if (emittedPairs.has(k)) {
-            out.push(emittedPairs.get(k)!);
-            continue;
-          }
-          // Bourke circle-circle intersection
           const aLen = (d * d + a.radius * a.radius - b.radius * b.radius) / (2 * d);
           const h2 = a.radius * a.radius - aLen * aLen;
           if (h2 < 0) continue;
@@ -229,26 +225,27 @@ export function createPond(container: HTMLElement): PondHandle {
           const uy = dy / d;
           const px2x = a.cx + ux * aLen;
           const px2y = a.cy + uy * aLen;
-          const cx = canvasW * 0.5;
-          const cy = canvasH * 0.5;
+          const ccx = canvasW * 0.5;
+          const ccy = canvasH * 0.5;
           const i1x = px2x + h * uy;
           const i1y = px2y - h * ux;
           const i2x = px2x - h * uy;
           const i2y = px2y + h * ux;
-          const d1 = Math.hypot(i1x - cx, i1y - cy);
-          const d2 = Math.hypot(i2x - cx, i2y - cy);
+          const d1 = Math.hypot(i1x - ccx, i1y - ccy);
+          const d2 = Math.hypot(i2x - ccx, i2y - ccy);
           const pick = d1 <= d2 ? { x: i1x, y: i1y } : { x: i2x, y: i2y };
-          const ix: Intersection = {
+          emittedPairs.add(k);
+          pendingEmissions.push({
             a: a.stoneId,
             b: b.stoneId,
             x: pick.x,
             y: pick.y,
             firstSeenAt: now,
-          };
-          emittedPairs.set(k, ix);
-          out.push(ix);
+          });
         }
       }
+      const out = pendingEmissions.slice();
+      pendingEmissions.length = 0;
       return out;
     },
 

@@ -10,6 +10,7 @@ type State = {
   addStone: (s: Stone) => void;
   addConsequence: (c: Consequence) => void;
   addCompound: (c: CompoundConsequence) => void;
+  updateCompoundText: (id: UUID, text: string) => void;
   markPairEmitted: (a: UUID, b: UUID) => boolean;
   reset: () => void;
 };
@@ -25,6 +26,10 @@ export const useStore = create<State>()((set, get) => ({
   addStone: (s) => set((st) => ({ stones: [...st.stones, s] })),
   addConsequence: (c) => set((st) => ({ consequences: [...st.consequences, c] })),
   addCompound: (c) => set((st) => ({ compounds: [...st.compounds, c] })),
+  updateCompoundText: (id, text) =>
+    set((st) => ({
+      compounds: st.compounds.map((c) => (c.id === id ? { ...c, text } : c)),
+    })),
   markPairEmitted: (a, b) => {
     const k = pairKey(a, b);
     if (get().emittedPairs.has(k)) return false;
