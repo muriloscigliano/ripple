@@ -42,6 +42,45 @@ const MOVE_AWAY: Seed[] = [
   { text: 'You build a life that fits you', horizon: 'long', severity: 'calm', angle: 268 },
 ];
 
+const SAID_YES: Seed[] = [
+  { text: 'Your hands stop shaking', horizon: 'immediate', severity: 'calm', angle: 12 },
+  { text: 'A grin you cannot hide all day', horizon: 'immediate', severity: 'calm', angle: 70 },
+  { text: 'You text your sister immediately', horizon: 'immediate', severity: 'calm', angle: 130 },
+  { text: 'The sky looks slightly different', horizon: 'immediate', severity: 'calm', angle: 195 },
+  { text: 'A weekend of celebration ahead', horizon: 'short', severity: 'calm', angle: 240 },
+  { text: 'You sleep deeply that night', horizon: 'short', severity: 'calm', angle: 285 },
+  { text: 'Your mother cries the good tears', horizon: 'short', severity: 'calm', angle: 325 },
+  { text: 'A new chapter begins quietly', horizon: 'long', severity: 'calm', angle: 25 },
+  { text: 'The future just got brighter', horizon: 'long', severity: 'calm', angle: 165 },
+  { text: 'You knew the answer before you said it', horizon: 'long', severity: 'calm', angle: 270 },
+];
+
+const PROPOSAL: Seed[] = [
+  { text: 'Their breath catches before yes', horizon: 'immediate', severity: 'calm', angle: 18 },
+  { text: 'You both laugh through the tears', horizon: 'immediate', severity: 'calm', angle: 80 },
+  { text: 'You call your mother first', horizon: 'immediate', severity: 'calm', angle: 140 },
+  { text: 'Friends arrive with champagne by 9pm', horizon: 'immediate', severity: 'calm', angle: 200 },
+  { text: 'Choosing the words for the rings', horizon: 'short', severity: 'calm', angle: 250 },
+  { text: 'A small dinner this weekend', horizon: 'short', severity: 'calm', angle: 295 },
+  { text: 'Picking out the venue together', horizon: 'short', severity: 'calm', angle: 335 },
+  { text: 'Years of small Sundays together', horizon: 'long', severity: 'calm', angle: 30 },
+  { text: 'Your kids will hear the story', horizon: 'long', severity: 'calm', angle: 175 },
+  { text: 'Worth every uncertain second', horizon: 'long', severity: 'calm', angle: 280 },
+];
+
+const START_COMPANY: Seed[] = [
+  { text: 'You sign the papers at noon', horizon: 'immediate', severity: 'calm', angle: 22 },
+  { text: 'Your first customer says yes', horizon: 'immediate', severity: 'calm', angle: 88 },
+  { text: 'Your old boss writes a kind email', horizon: 'immediate', severity: 'calm', angle: 148 },
+  { text: 'Twelve hour days that feel right', horizon: 'immediate', severity: 'calm', angle: 210 },
+  { text: 'Three months of runway', horizon: 'short', severity: 'heavy', angle: 256 },
+  { text: 'Hiring the friend who believed first', horizon: 'short', severity: 'calm', angle: 302 },
+  { text: 'Your name on the door', horizon: 'short', severity: 'calm', angle: 342 },
+  { text: 'Building something that is yours', horizon: 'long', severity: 'calm', angle: 38 },
+  { text: 'You finally choose your hours', horizon: 'long', severity: 'calm', angle: 178 },
+  { text: 'A team of seven by spring', horizon: 'long', severity: 'calm', angle: 268 },
+];
+
 const DEFAULT: Seed[] = [
   { text: 'A small change in the room', horizon: 'immediate', severity: 'calm', angle: 30 },
   { text: 'You notice your breathing', horizon: 'immediate', severity: 'calm', angle: 75 },
@@ -66,6 +105,11 @@ const COMPOUNDS = [
 
 function pick(decision: string): Seed[] {
   const d = decision.toLowerCase();
+  // Most-specific keywords first
+  if (d.includes('marry') || d.includes('propose') || d.includes('engaged')) return PROPOSAL;
+  if (d.includes('start') && (d.includes('company') || d.includes('business'))) return START_COMPANY;
+  if (d.includes('company') || d.includes('startup') || d.includes('business')) return START_COMPANY;
+  if (d.includes('said yes') || d.includes(' yes')) return SAID_YES;
   if (d.includes('quit') || d.includes('job')) return QUIT_JOB;
   if (d.includes('feel') || d.includes('tell') || d.includes('love')) return TELL_FEEL;
   if (d.includes('move') || d.includes('city') || d.includes('country')) return MOVE_AWAY;
