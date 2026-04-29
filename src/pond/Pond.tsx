@@ -27,6 +27,7 @@ export const Pond = forwardRef<PondHandle, Props>(({ onDrop, onCursorMove }, ref
 
   useImperativeHandle(ref, () => ({
     dropStone: (x, y, i) => handleRef.current?.dropStone(x, y, i) ?? '',
+    dropPerturbation: (x, y, i) => handleRef.current?.dropPerturbation(x, y, i),
     getWavefronts: () => handleRef.current?.getWavefronts() ?? [],
     getIntersections: () => handleRef.current?.getIntersections() ?? [],
     setHover: (x, y) => handleRef.current?.setHover(x, y),
@@ -42,8 +43,10 @@ export const Pond = forwardRef<PondHandle, Props>(({ onDrop, onCursorMove }, ref
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     if (!handleRef.current) return;
     const { x, y } = localXY(e);
-    const id = handleRef.current.dropStone(x, y, 1.0);
-    onDrop?.(id, x, y);
+    // Click on the pond surface drops a quiet decorative ripple only —
+    // no consequences, no intersections. Real decisions go through Input.
+    handleRef.current.dropPerturbation(x, y, 0.6);
+    onDrop?.('', x, y);
   };
 
   const handleMove = (e: MouseEvent<HTMLDivElement>) => {

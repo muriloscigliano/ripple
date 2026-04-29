@@ -4,6 +4,7 @@ import type { Wavefront, Intersection, UUID } from '../types';
 
 export type PondHandle = {
   dropStone(x: number, y: number, intensity: number): UUID;
+  dropPerturbation(x: number, y: number, intensity: number): void;
   getWavefronts(): Wavefront[];
   getIntersections(): Intersection[];
   setHover(x: number | null, y: number | null): void;
@@ -55,6 +56,22 @@ export function createPond(container: HTMLElement): PondHandle {
   // Canvas size cache
   let canvasW = container.clientWidth;
   let canvasH = container.clientHeight;
+
+  const perturb = (x: number, y: number, intensity: number) => {
+    const bx = Math.floor((x / canvasW) * BW);
+    const by = Math.floor((y / canvasH) * BH);
+    const r = 3;
+    const power = 1.2 * intensity;
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (dx * dx + dy * dy > r * r) continue;
+        const px2 = bx + dx;
+        const py2 = by + dy;
+        if (px2 < 1 || px2 >= BW - 1 || py2 < 1 || py2 >= BH - 1) continue;
+        prev[px2 + py2 * BW] += power;
+      }
+    }
+  };
 
   const sketch = (p: p5) => {
     p.setup = () => {
@@ -173,22 +190,15 @@ export function createPond(container: HTMLElement): PondHandle {
 
   return {
     dropStone(x, y, intensity) {
-      const bx = Math.floor((x / canvasW) * BW);
-      const by = Math.floor((y / canvasH) * BH);
-      const r = 3;
-      const power = 1.2 * intensity;
-      for (let dy = -r; dy <= r; dy++) {
-        for (let dx = -r; dx <= r; dx++) {
-          if (dx * dx + dy * dy > r * r) continue;
-          const px2 = bx + dx;
-          const py2 = by + dy;
-          if (px2 < 1 || px2 >= BW - 1 || py2 < 1 || py2 >= BH - 1) continue;
-          prev[px2 + py2 * BW] += power;
-        }
-      }
+      perturb(x, y, intensity);
       const id = uuid();
       stones.push({ id, cx: x, cy: y, t0: performance.now() });
       return id;
+    },
+
+    dropPerturbation(x, y, intensity) {
+      // Visual ripple only — no analytic stone, no intersection tracking.
+      perturb(x, y, intensity);
     },
 
     getWavefronts(): Wavefront[] {

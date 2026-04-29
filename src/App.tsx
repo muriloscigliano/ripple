@@ -62,12 +62,14 @@ export default function App() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Cold-open
+  // Cold-open: visual perturbation only (does NOT register an analytic stone,
+  // so it can never participate in compound intersections later).
   useEffect(() => {
     const timer = window.setTimeout(() => {
+      if (!pondRef.current) return;
       const x = window.innerWidth / 2;
       const y = window.innerHeight / 2;
-      pondRef.current?.dropStone(x, y, 0.6);
+      pondRef.current.dropPerturbation(x, y, 0.6);
       const key = uuid();
       setGhosts((g) => [...g, { key, text: 'every decision is a stone', x, y }]);
       window.setTimeout(() => {

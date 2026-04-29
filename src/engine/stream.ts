@@ -128,7 +128,11 @@ async function liveStreamConsequences(
 
   await new Promise<void>((resolve) => {
     const check = setInterval(() => {
-      if (drained >= MAX_CONSEQUENCES || (streamDone && queue.length === 0)) {
+      if (
+        signal?.aborted ||
+        drained >= MAX_CONSEQUENCES ||
+        (streamDone && queue.length === 0)
+      ) {
         clearInterval(check);
         resolve();
       }

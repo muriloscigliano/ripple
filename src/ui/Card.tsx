@@ -72,11 +72,17 @@ export function Card({ consequence, stone, isCompound, viewportW, viewportH }: P
   const x = clamp(cx, 80 + 130, viewportW - 80 - 130);
   const y = clamp(cy, 80 + 28, viewportH - 80 - 28);
 
-  // Visibility timeline derived from when this card's wavefront passes its target
-  const tPassMs = isCompound ? 0 : (HORIZON_R[consequence.horizon] ?? 360) / WAVE_SPEED_PX_PER_MS;
-  const sinceMount = performance.now() - stone.t0;
-  const startDelay = Math.max(0, (tPassMs - 100 - sinceMount) / 1000);
-  // Compound: bloom now, no delay
+  // Freeze startDelay on first render — re-renders must NOT re-compute,
+  // or the motion delay drifts when React re-renders mid-animation.
+  const startDelayRef = useRef<number | null>(null);
+  if (startDelayRef.current === null) {
+    const tPassMs = isCompound
+      ? 0
+      : (HORIZON_R[consequence.horizon] ?? 360) / WAVE_SPEED_PX_PER_MS;
+    const sinceMount = performance.now() - stone.t0;
+    startDelayRef.current = Math.max(0, (tPassMs - 100 - sinceMount) / 1000);
+  }
+  const startDelay = startDelayRef.current;
 
   // Variable-font weight pulse: throttle to 15Hz
   useEffect(() => {

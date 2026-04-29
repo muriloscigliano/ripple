@@ -4,8 +4,8 @@ import { inputFadeIn } from '../motion/presets';
 
 const PRESETS = [
   'I quit my job today.',
-  'I’m telling them how I feel.',
-  'I’m moving across the country.',
+  "I'm telling them how I feel.",
+  "I'm moving across the country.",
 ];
 
 type Props = {
