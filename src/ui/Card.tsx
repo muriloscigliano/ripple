@@ -49,11 +49,10 @@ function clamp(v: number, lo: number, hi: number): number {
 }
 
 const cardVariants = {
-  hidden: { opacity: 0, scale: 0.94, y: 8 },
+  hidden: { opacity: 0, scale: 0.94 },
   visible: {
     opacity: 1,
     scale: 1,
-    y: 0,
     transition: {
       duration: FADE_IN_S,
       ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
@@ -108,24 +107,31 @@ type Props = {
 };
 
 export function Card({ consequence, stone, isCompound, viewportW, viewportH }: Props) {
-  const ref = useRef<HTMLDivElement>(null);
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const variant: Variant = isCompound ? 'compound' : (consequence.severity as Variant);
   const palette = VARIANTS[variant];
 
-  let cx: number;
-  let cy: number;
+  // Pre-clamp position (used for accurate distance-from-stone in bob effect)
+  let cxRaw: number;
+  let cyRaw: number;
   if (isCompound && (consequence as CompoundConsequence).origin) {
     const o = (consequence as CompoundConsequence).origin;
-    cx = o.x;
-    cy = o.y;
+    cxRaw = o.x;
+    cyRaw = o.y;
   } else {
     const r = HORIZON_R[consequence.horizon] ?? 360;
     const rad = (consequence.angle * Math.PI) / 180;
-    cx = stone.x + Math.cos(rad) * r;
-    cy = stone.y + Math.sin(rad) * r;
+    cxRaw = stone.x + Math.cos(rad) * r;
+    cyRaw = stone.y + Math.sin(rad) * r;
   }
-  const x = clamp(cx, 80 + 160, viewportW - 80 - 160);
-  const y = clamp(cy, 80 + 32, viewportH - 80 - 32);
+  const x = clamp(cxRaw, 80 + 160, viewportW - 80 - 160);
+  const y = clamp(cyRaw, 80 + 32, viewportH - 80 - 32);
+
+  // Unit vector from stone toward card (radial direction for the push effect)
+  const distFromStone = Math.max(1, Math.hypot(cxRaw - stone.x, cyRaw - stone.y));
+  const dxRadial = (cxRaw - stone.x) / distFromStone;
+  const dyRadial = (cyRaw - stone.y) / distFromStone;
 
   // Phase orchestration
   const startDelayMs = useRef<number | null>(null);
@@ -141,7 +147,6 @@ export function Card({ consequence, stone, isCompound, viewportW, viewportH }: P
   useEffect(() => {
     if (isCompound) {
       const t1 = window.setTimeout(() => setPhase('visible'), 0);
-      // Compound cards never fade (they're the climax)
       return () => window.clearTimeout(t1);
     }
     const t1 = window.setTimeout(() => setPhase('visible'), startDelayMs.current ?? 0);
@@ -155,9 +160,49 @@ export function Card({ consequence, stone, isCompound, viewportW, viewportH }: P
     };
   }, [isCompound]);
 
-  // Variable-font weight pulse — heavier base (500-700)
+  // Bob effect — outer transform driven by RAF.
+  // Three components: (1) tiny pre-arrival anticipation float,
+  // (2) radial push when the wave hits, (3) damped 2D oscillation after.
   useEffect(() => {
-    if (!ref.current || isCompound) return;
+    if (!outerRef.current || isCompound) return;
+    let raf = 0;
+    const tArrive = distFromStone / WAVE_SPEED_PX_PER_MS;
+    const tick = () => {
+      const now = performance.now();
+      const sinceStone = now - stone.t0;
+      const sinceWave = sinceStone - tArrive;
+
+      let xOff = 0;
+      let yOff = 0;
+
+      if (sinceWave < 0) {
+        // Pre-arrival: tiny anticipation breath (±1.5px)
+        const breath = Math.sin(now * 0.0014) * 1.5;
+        yOff = breath;
+      } else {
+        // Radial push on impact: peaks at 200ms, settles by 800ms
+        const pushK = sinceWave < 800 ? Math.sin((sinceWave / 800) * Math.PI) : 0;
+        const pushPx = pushK * 14;
+        // Damped 2D bob continues for ~5s after wave passes
+        const env = Math.exp(-sinceWave * 4.5e-4);
+        const bobY = Math.sin(sinceWave * 0.0028) * env * 9;
+        const bobX = Math.cos(sinceWave * 0.0019) * env * 4;
+        xOff = dxRadial * pushPx + bobX;
+        yOff = dyRadial * pushPx + bobY;
+      }
+
+      if (outerRef.current) {
+        outerRef.current.style.transform = `translate(calc(-50% + ${xOff.toFixed(2)}px), calc(-50% + ${yOff.toFixed(2)}px))`;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [distFromStone, dxRadial, dyRadial, stone.t0, isCompound]);
+
+  // Variable-font weight pulse — heavier base
+  useEffect(() => {
+    if (!innerRef.current || isCompound) return;
     let raf = 0;
     let lastUpdate = 0;
     const tick = () => {
@@ -170,8 +215,8 @@ export function Card({ consequence, stone, isCompound, viewportW, viewportH }: P
         const dist = Math.abs(radius - target_r);
         const local = amp * Math.exp((-dist * dist) / (60 * 60));
         const weight = Math.round(500 + clamp(local, 0, 1) * 200);
-        if (ref.current) {
-          ref.current.style.fontVariationSettings = `"wght" ${weight}, "SOFT" 60, "opsz" 32`;
+        if (innerRef.current) {
+          innerRef.current.style.fontVariationSettings = `"wght" ${weight}, "SOFT" 60, "opsz" 32`;
         }
         lastUpdate = now;
       }
@@ -184,50 +229,57 @@ export function Card({ consequence, stone, isCompound, viewportW, viewportH }: P
   const words = useMemo(() => consequence.text.split(/(\s+)/), [consequence.text]);
 
   return (
-    <motion.div
-      ref={ref}
-      variants={isCompound ? compoundVariants : cardVariants}
-      initial="hidden"
-      animate={phase}
+    <div
+      ref={outerRef}
       style={{
         position: 'absolute',
         left: x,
         top: y,
         transform: 'translate(-50%, -50%)',
-        maxWidth: 'var(--max-card-w)',
-        padding: '18px 24px',
-        background: palette.bg,
-        backdropFilter: 'blur(28px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(180%)',
-        border: `1px solid ${palette.border}`,
-        borderRadius: 'var(--radius-card)',
-        color: palette.text,
-        fontFamily: 'var(--font-display)',
-        fontSize: 'var(--text-card)',
-        fontStyle: 'italic',
-        lineHeight: 1.3,
-        letterSpacing: '-0.005em',
-        boxShadow: palette.shadow,
+        willChange: 'transform',
         pointerEvents: 'none',
-        textAlign: 'center',
-        whiteSpace: 'normal',
-        userSelect: 'none',
-        textShadow: '0 1px 1px oklch(0 0 0 / 0.6)',
       }}
     >
-      {words.map((w, i) =>
-        /^\s+$/.test(w) ? (
-          <span key={i} style={{ whiteSpace: 'pre' }}>{w}</span>
-        ) : (
-          <motion.span
-            key={i}
-            variants={wordVariants}
-            style={{ display: 'inline-block', willChange: 'transform, filter, opacity' }}
-          >
-            {w}
-          </motion.span>
-        ),
-      )}
-    </motion.div>
+      <motion.div
+        ref={innerRef}
+        variants={isCompound ? compoundVariants : cardVariants}
+        initial="hidden"
+        animate={phase}
+        style={{
+          maxWidth: 'var(--max-card-w)',
+          padding: '18px 24px',
+          background: palette.bg,
+          backdropFilter: 'blur(28px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+          border: `1px solid ${palette.border}`,
+          borderRadius: 'var(--radius-card)',
+          color: palette.text,
+          fontFamily: 'var(--font-display)',
+          fontSize: 'var(--text-card)',
+          fontStyle: 'italic',
+          lineHeight: 1.3,
+          letterSpacing: '-0.005em',
+          boxShadow: palette.shadow,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          userSelect: 'none',
+          textShadow: '0 1px 1px oklch(0 0 0 / 0.6)',
+        }}
+      >
+        {words.map((w, i) =>
+          /^\s+$/.test(w) ? (
+            <span key={i} style={{ whiteSpace: 'pre' }}>{w}</span>
+          ) : (
+            <motion.span
+              key={i}
+              variants={wordVariants}
+              style={{ display: 'inline-block', willChange: 'transform, filter, opacity' }}
+            >
+              {w}
+            </motion.span>
+          ),
+        )}
+      </motion.div>
+    </div>
   );
 }
