@@ -121,8 +121,10 @@ export function Card({ consequence, stone, isCompound, viewportW, viewportH }: P
         initial: { opacity: 0, y: 8 },
         animate: { opacity: [0, 1, 1, 0], y: [8, 0, 0, 0] },
         transition: {
-          duration: 2.4,
-          times: [0, 0.083, 0.541, 1],
+          // 0.4s fade-in → 4.6s hold → 1.4s fade-out  (total 6.4s)
+          // Reading window per card: ~4.6s of full opacity.
+          duration: 6.4,
+          times: [0, 0.0625, 0.7813, 1],
           ease: [0.16, 1, 0.3, 1],
           delay: startDelay,
         },
