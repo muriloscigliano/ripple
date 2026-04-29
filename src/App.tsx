@@ -15,7 +15,7 @@ import type { PondHandle } from './pond/sketch';
 import { streamConsequences, streamCompound } from './engine/stream';
 import { unlockAudio, playDrop, playCompound } from './audio/tone';
 import { useStore } from './store';
-import type { Consequence, Intersection } from './types';
+import type { Consequence, CompoundConsequence, Intersection } from './types';
 
 type GlyphInFlight = { key: string; text: string; x: number; y: number };
 type GhostInFlight = { key: string; text: string; x: number; y: number };
@@ -206,6 +206,29 @@ export default function App() {
     };
   }, []);
 
+  // Chain: tapping a consequence card spawns a new ripple at that
+  // card's position with the card's text as the new "decision."
+  const handleChain = useCallback(
+    (c: Consequence | CompoundConsequence, cx: number, cy: number) => {
+      const stoneId = pondRef.current?.dropStone(cx, cy, 0.85) ?? uuid();
+      playDrop();
+      addStone({
+        id: stoneId,
+        x: cx,
+        y: cy,
+        decision: c.text,
+        t0: performance.now(),
+        intensity: 0.85,
+      });
+      streamConsequences(
+        c.text,
+        (next) => addConsequence({ ...next, stoneId }),
+        { stoneId },
+      ).catch((err) => console.warn('[ripple] chain stream error', err));
+    },
+    [addStone, addConsequence],
+  );
+
   const handleSubmit = useCallback(
     (text: string) => {
       if (submitting) return;
@@ -255,7 +278,11 @@ export default function App() {
       {ghosts.map((g) => (
         <GhostText key={g.key} text={g.text} x={g.x} y={g.y} />
       ))}
-      <Cards viewportW={viewport.w} viewportH={viewport.h} />
+      <Cards
+        viewportW={viewport.w}
+        viewportH={viewport.h}
+        onChain={handleChain}
+      />
       {particleSets.map((p) => (
         <Particles key={p.key} originX={p.x} originY={p.y} />
       ))}

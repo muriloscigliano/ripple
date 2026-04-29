@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { useStore } from '../store';
 import { Card } from './Card';
-import type { Consequence } from '../types';
+import type { Consequence, CompoundConsequence } from '../types';
 
 type Props = {
   viewportW: number;
   viewportH: number;
+  onChain?: (c: Consequence | CompoundConsequence, x: number, y: number) => void;
 };
 
 // Deterministic angle distribution per (stoneId, horizon) — overrides the
@@ -32,7 +33,7 @@ function distributeAngles(consequences: Consequence[]): Map<string, number> {
   return out;
 }
 
-export function Cards({ viewportW, viewportH }: Props) {
+export function Cards({ viewportW, viewportH, onChain }: Props) {
   const stones = useStore((s) => s.stones);
   const consequences = useStore((s) => s.consequences);
   const compounds = useStore((s) => s.compounds);
@@ -67,6 +68,7 @@ export function Cards({ viewportW, viewportH }: Props) {
             stone={stone}
             viewportW={viewportW}
             viewportH={viewportH}
+            onChain={onChain}
           />
         );
       })}
@@ -81,6 +83,7 @@ export function Cards({ viewportW, viewportH }: Props) {
             isCompound
             viewportW={viewportW}
             viewportH={viewportH}
+            onChain={onChain}
           />
         );
       })}

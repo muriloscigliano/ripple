@@ -104,9 +104,10 @@ type Props = {
   isCompound?: boolean;
   viewportW: number;
   viewportH: number;
+  onChain?: (c: Consequence | CompoundConsequence, x: number, y: number) => void;
 };
 
-export function Card({ consequence, stone, isCompound, viewportW, viewportH }: Props) {
+export function Card({ consequence, stone, isCompound, viewportW, viewportH, onChain }: Props) {
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const variant: Variant = isCompound ? 'compound' : (consequence.severity as Variant);
@@ -228,16 +229,24 @@ export function Card({ consequence, stone, isCompound, viewportW, viewportH }: P
 
   const words = useMemo(() => consequence.text.split(/(\s+)/), [consequence.text]);
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (phase !== 'visible') return;
+    onChain?.(consequence, x, y);
+  };
+
   return (
     <div
       ref={outerRef}
+      onClick={handleClick}
       style={{
         position: 'absolute',
         left: x,
         top: y,
         transform: 'translate(-50%, -50%)',
         willChange: 'transform',
-        pointerEvents: 'none',
+        pointerEvents: phase === 'visible' ? 'auto' : 'none',
+        cursor: phase === 'visible' ? 'pointer' : 'default',
       }}
     >
       <motion.div
@@ -245,6 +254,8 @@ export function Card({ consequence, stone, isCompound, viewportW, viewportH }: P
         variants={isCompound ? compoundVariants : cardVariants}
         initial="hidden"
         animate={phase}
+        whileHover={{ scale: 1.04, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } }}
+        whileTap={{ scale: 0.97 }}
         style={{
           maxWidth: 'var(--max-card-w)',
           padding: '18px 24px',
