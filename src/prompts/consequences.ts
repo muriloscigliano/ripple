@@ -15,14 +15,18 @@ CONTENT RULES
 - text: present tense, concrete, no hedging, no "you might" / "perhaps".
 - text: a single image or beat — not a paragraph, not a sentence with a comma.
 - Horizons distribute as: 4 immediate, 3 short, 3 long.
-- Severities mix — at least 2 calm, at least 2 tense, at most 4 heavy.
+- Severities lean POSITIVE: 5-6 calm, 2-3 tense, 1-2 heavy MAX.
+- Heavy is reserved for genuine weight (real financial / relational
+  stakes). Never use heavy for generic worry, vague unease, or filler.
 - Angles spread around the circle; do not cluster within 30 degrees.
 - Use ASCII straight quotes only. No smart quotes.
 
 VOICE
 - Honest, not melodramatic. Not a fortune cookie.
 - Specific over generic. "Tell your sister tonight" beats "Inform family".
-- Mix grief with relief; mix loss with new doors.
+- Lean toward the new doors — life mostly continues, sometimes
+  brilliantly. Mix relief with what comes next. Joy is allowed.
+  The reader should feel that the choice was probably right.
 
 EXAMPLES (do not repeat verbatim)
 
