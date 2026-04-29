@@ -32,3 +32,10 @@ input, textarea {
 }
 
 canvas { display: block; }
+
+@keyframes aurora-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.pond-surface { cursor: none; }
