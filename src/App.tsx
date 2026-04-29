@@ -13,6 +13,7 @@ import { Readout } from './ui/Readout';
 import { Particles } from './ui/Particles';
 import type { PondHandle } from './pond/sketch';
 import { streamConsequences, streamCompound } from './engine/stream';
+import { unlockAudio, playDrop, playCompound } from './audio/tone';
 import { useStore } from './store';
 import type { Consequence, Intersection } from './types';
 
@@ -62,6 +63,19 @@ export default function App() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  // Audio unlock on first user gesture (Tone.js requires this).
+  useEffect(() => {
+    const unlock = () => {
+      unlockAudio();
+    };
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, []);
+
   // Cold-open: visual perturbation only (does NOT register an analytic stone,
   // so it can never participate in compound intersections later).
   useEffect(() => {
@@ -105,6 +119,7 @@ export default function App() {
         setParticleSets((p) => p.filter((s) => s.key !== partKey));
       }, 1100);
 
+      playCompound();
       addCompound({
         id: compoundId,
         stoneId: a.stoneId,
@@ -177,6 +192,7 @@ export default function App() {
 
       window.setTimeout(() => {
         const stoneId = pondRef.current?.dropStone(x, y, 1.2) ?? uuid();
+        playDrop();
         addStone({
           id: stoneId,
           x,

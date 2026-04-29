@@ -140,24 +140,25 @@ export function createPond(container: HTMLElement): PondHandle {
         }
       }
 
-      // Render: signed ramp into ImageData
-      // void  oklch ≈ rgb(11,17,29)
-      // deep  oklch ≈ rgb(15,55,72)
-      // light oklch ≈ rgb(122,217,255)
+      // Render: signed ramp into ImageData with gamma-boosted contrast.
+      // Boost factor 1.8x amplifies low-amplitude ripples (most of the wave
+      // field after the leading edge), pow 0.55 gamma curves toward bright.
       for (let i = 0; i < BW * BH; i++) {
-        const v = cur[i];
-        const t = v < -1 ? -1 : v > 1 ? 1 : v;
+        const raw = cur[i] * 1.8;
+        const t = raw < -1 ? -1 : raw > 1 ? 1 : raw;
         let r: number, g: number, b: number;
         if (t < 0) {
-          const k = -t;
-          r = 11 + k * (15 - 11);
-          g = 17 + k * (55 - 17);
-          b = 29 + k * (72 - 29);
+          const k = Math.pow(-t, 0.55);
+          // void rgb(11,17,29) → deep teal rgb(18,68,92)
+          r = 11 + k * 7;
+          g = 17 + k * 51;
+          b = 29 + k * 63;
         } else {
-          const k = t;
-          r = 11 + k * (122 - 11);
-          g = 17 + k * (217 - 17);
-          b = 29 + k * (255 - 29);
+          const k = Math.pow(t, 0.55);
+          // void → bright cyan-white rgb(170,235,255) (was 122,217,255)
+          r = 11 + k * 159;
+          g = 17 + k * 218;
+          b = 29 + k * 226;
         }
         const idx = i * 4;
         px[idx] = r;
