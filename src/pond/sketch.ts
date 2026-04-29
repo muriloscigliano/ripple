@@ -140,24 +140,24 @@ export function createPond(container: HTMLElement): PondHandle {
         }
       }
 
-      // Render: signed ramp into ImageData with gamma-boosted contrast.
-      // Boost factor 1.8x amplifies low-amplitude ripples (most of the wave
-      // field after the leading edge), pow 0.55 gamma curves toward bright.
+      // Render: signed ramp into ImageData with aggressive contrast.
+      // Amplitude x3.0 + gamma 0.4 + bright cyan-white highlight makes
+      // the entire wave field readable, not just the leading edge.
       for (let i = 0; i < BW * BH; i++) {
-        const raw = cur[i] * 1.8;
+        const raw = cur[i] * 3.0;
         const t = raw < -1 ? -1 : raw > 1 ? 1 : raw;
         let r: number, g: number, b: number;
         if (t < 0) {
-          const k = Math.pow(-t, 0.55);
-          // void rgb(11,17,29) → deep teal rgb(18,68,92)
-          r = 11 + k * 7;
-          g = 17 + k * 51;
-          b = 29 + k * 63;
+          const k = Math.pow(-t, 0.4);
+          // void rgb(11,17,29) → deep teal rgb(20,80,108)
+          r = 11 + k * 9;
+          g = 17 + k * 63;
+          b = 29 + k * 79;
         } else {
-          const k = Math.pow(t, 0.55);
-          // void → bright cyan-white rgb(170,235,255) (was 122,217,255)
-          r = 11 + k * 159;
-          g = 17 + k * 218;
+          const k = Math.pow(t, 0.4);
+          // void → bright cyan-white rgb(220,245,255)
+          r = 11 + k * 209;
+          g = 17 + k * 228;
           b = 29 + k * 226;
         }
         const idx = i * 4;
@@ -173,6 +173,53 @@ export function createPond(container: HTMLElement): PondHandle {
       mainCtx.imageSmoothingEnabled = true;
       mainCtx.imageSmoothingQuality = 'high';
       mainCtx.drawImage(offscreen, 0, 0, canvasW, canvasH);
+
+      // Additive overlay: bright stroked ring at each analytic wavefront +
+      // brief splash flash at the drop point. Three stacked strokes per
+      // ring fake a bloom without expensive shadowBlur.
+      mainCtx.save();
+      mainCtx.globalCompositeOperation = 'lighter';
+      const diag = Math.hypot(canvasW, canvasH);
+      for (const s of stones) {
+        const age = now - s.t0;
+        const radius = WAVE_SPEED_PX_PER_MS * age;
+        const amp =
+          Math.exp(-DECAY_PER_MS * age) / Math.max(1, Math.sqrt(radius / REF_R));
+
+        // Splash flash (first 320ms only)
+        if (age < 320) {
+          const k = 1 - age / 320;
+          const dotR = 6 + (1 - k) * 14;
+          mainCtx.fillStyle = `rgba(220, 245, 255, ${k * 0.85})`;
+          mainCtx.beginPath();
+          mainCtx.arc(s.cx, s.cy, dotR, 0, Math.PI * 2);
+          mainCtx.fill();
+        }
+
+        // Ring at the leading wavefront
+        if (radius > 8 && radius < diag && amp > 0.05) {
+          const a0 = Math.min(1, amp * 1.4);
+          // Outermost soft halo
+          mainCtx.strokeStyle = `rgba(170, 230, 255, ${a0 * 0.20})`;
+          mainCtx.lineWidth = 14;
+          mainCtx.beginPath();
+          mainCtx.arc(s.cx, s.cy, radius, 0, Math.PI * 2);
+          mainCtx.stroke();
+          // Mid bloom
+          mainCtx.strokeStyle = `rgba(190, 240, 255, ${a0 * 0.45})`;
+          mainCtx.lineWidth = 6;
+          mainCtx.beginPath();
+          mainCtx.arc(s.cx, s.cy, radius, 0, Math.PI * 2);
+          mainCtx.stroke();
+          // Sharp inner edge
+          mainCtx.strokeStyle = `rgba(230, 250, 255, ${a0})`;
+          mainCtx.lineWidth = 1.5;
+          mainCtx.beginPath();
+          mainCtx.arc(s.cx, s.cy, radius, 0, Math.PI * 2);
+          mainCtx.stroke();
+        }
+      }
+      mainCtx.restore();
 
       // Cull dead stones
       for (let i = stones.length - 1; i >= 0; i--) {
