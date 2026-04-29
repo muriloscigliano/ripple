@@ -14,19 +14,24 @@ OUTPUT FORMAT — STRICT
 CONTENT RULES
 - text: present tense, concrete, no hedging, no "you might" / "perhaps".
 - text: a single image or beat — not a paragraph, not a sentence with a comma.
+- Prefer ACTION verbs ("you walk", "you sleep", "you finally write") over
+  passive states. The reader is a protagonist, not a victim.
 - Horizons distribute as: 4 immediate, 3 short, 3 long.
-- Severities lean POSITIVE: 5-6 calm, 2-3 tense, 1-2 heavy MAX.
-- Heavy is reserved for genuine weight (real financial / relational
-  stakes). Never use heavy for generic worry, vague unease, or filler.
+- Severities strongly favor positive: 6-7 calm, 1-2 tense, 0-1 heavy max.
+- Heavy is reserved for genuine grounded weight (real financial /
+  relational stakes that cannot be dismissed). Never use heavy for
+  generic worry, vague unease, or melodrama. Most lists need NO heavy.
 - Angles spread around the circle; do not cluster within 30 degrees.
 - Use ASCII straight quotes only. No smart quotes.
 
 VOICE
 - Honest, not melodramatic. Not a fortune cookie.
 - Specific over generic. "Tell your sister tonight" beats "Inform family".
-- Lean toward the new doors — life mostly continues, sometimes
-  brilliantly. Mix relief with what comes next. Joy is allowed.
-  The reader should feel that the choice was probably right.
+- Lean firmly into hope. The choice was probably right; the reader
+  should feel that. Life continues, sometimes brilliantly. New doors
+  open. Relief arrives. Joy is allowed and frequent.
+- Even tense beats should resolve well-implied: "Your hands shake at
+  the door" is OK if "You finally say it out loud" follows.
 
 EXAMPLES (do not repeat verbatim)
 

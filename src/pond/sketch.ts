@@ -140,25 +140,24 @@ export function createPond(container: HTMLElement): PondHandle {
         }
       }
 
-      // Render: signed ramp into ImageData with aggressive contrast.
-      // Amplitude x3.0 + gamma 0.4 + bright cyan-white highlight makes
-      // the entire wave field readable, not just the leading edge.
+      // Render: signed ramp into ImageData. Tuned for visibility without glare.
+      // Amplitude x2.3, gamma 0.5, softer cyan highlight.
       for (let i = 0; i < BW * BH; i++) {
-        const raw = cur[i] * 3.0;
+        const raw = cur[i] * 2.3;
         const t = raw < -1 ? -1 : raw > 1 ? 1 : raw;
         let r: number, g: number, b: number;
         if (t < 0) {
-          const k = Math.pow(-t, 0.4);
-          // void rgb(11,17,29) → deep teal rgb(20,80,108)
-          r = 11 + k * 9;
-          g = 17 + k * 63;
-          b = 29 + k * 79;
+          const k = Math.pow(-t, 0.5);
+          // void rgb(11,17,29) → deep teal rgb(18,68,92)
+          r = 11 + k * 7;
+          g = 17 + k * 51;
+          b = 29 + k * 63;
         } else {
-          const k = Math.pow(t, 0.4);
-          // void → bright cyan-white rgb(220,245,255)
-          r = 11 + k * 209;
-          g = 17 + k * 228;
-          b = 29 + k * 226;
+          const k = Math.pow(t, 0.5);
+          // void → soft cyan rgb(170,220,240)
+          r = 11 + k * 159;
+          g = 17 + k * 203;
+          b = 29 + k * 211;
         }
         const idx = i * 4;
         px[idx] = r;
@@ -190,7 +189,7 @@ export function createPond(container: HTMLElement): PondHandle {
         if (age < 320) {
           const k = 1 - age / 320;
           const dotR = 6 + (1 - k) * 14;
-          mainCtx.fillStyle = `rgba(220, 245, 255, ${k * 0.85})`;
+          mainCtx.fillStyle = `rgba(190, 225, 240, ${k * 0.55})`;
           mainCtx.beginPath();
           mainCtx.arc(s.cx, s.cy, dotR, 0, Math.PI * 2);
           mainCtx.fill();
@@ -198,21 +197,21 @@ export function createPond(container: HTMLElement): PondHandle {
 
         // Ring at the leading wavefront
         if (radius > 8 && radius < diag && amp > 0.05) {
-          const a0 = Math.min(1, amp * 1.4);
+          const a0 = Math.min(1, amp * 1.2);
           // Outermost soft halo
-          mainCtx.strokeStyle = `rgba(170, 230, 255, ${a0 * 0.20})`;
+          mainCtx.strokeStyle = `rgba(150, 210, 235, ${a0 * 0.14})`;
           mainCtx.lineWidth = 14;
           mainCtx.beginPath();
           mainCtx.arc(s.cx, s.cy, radius, 0, Math.PI * 2);
           mainCtx.stroke();
           // Mid bloom
-          mainCtx.strokeStyle = `rgba(190, 240, 255, ${a0 * 0.45})`;
+          mainCtx.strokeStyle = `rgba(170, 220, 240, ${a0 * 0.30})`;
           mainCtx.lineWidth = 6;
           mainCtx.beginPath();
           mainCtx.arc(s.cx, s.cy, radius, 0, Math.PI * 2);
           mainCtx.stroke();
           // Sharp inner edge
-          mainCtx.strokeStyle = `rgba(230, 250, 255, ${a0})`;
+          mainCtx.strokeStyle = `rgba(200, 235, 250, ${a0 * 0.65})`;
           mainCtx.lineWidth = 1.5;
           mainCtx.beginPath();
           mainCtx.arc(s.cx, s.cy, radius, 0, Math.PI * 2);
