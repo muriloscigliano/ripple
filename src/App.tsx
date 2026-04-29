@@ -93,10 +93,14 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  // Severity-driven hue shift on the void (Move #12)
+  // Severity-driven hue shift on the void (Move #12) +
+  // per-stone ring tone (calm → cyan, heavy → ruby).
   useEffect(() => {
-    const recent = useStore.getState().consequences.slice(-6);
-    if (recent.length === 0) return;
+    const all = useStore.getState().consequences;
+    if (all.length === 0) return;
+
+    // Global void tint from rolling avg of last 6
+    const recent = all.slice(-6);
     const avg =
       recent.reduce((s, c) => s + (SEV_LEVEL[c.severity] ?? 0), 0) / recent.length;
     const lightness = 0.10 - avg * 0.005;
@@ -105,6 +109,23 @@ export default function App() {
       '--color-surface-void',
       `oklch(${lightness.toFixed(3)} ${chroma.toFixed(3)} 250)`,
     );
+
+    // Per-stone ring tone: calm = -1, tense = 0, heavy = +1; lerp cyan→ruby
+    const SCORE: Record<string, number> = { calm: -1, tense: 0, heavy: 1 };
+    const byStone = new Map<string, number[]>();
+    for (const c of all) {
+      const arr = byStone.get(c.stoneId) ?? [];
+      arr.push(SCORE[c.severity] ?? 0);
+      byStone.set(c.stoneId, arr);
+    }
+    for (const [stoneId, scores] of byStone) {
+      const sAvg = scores.reduce((a, b) => a + b, 0) / scores.length;
+      const t = (sAvg + 1) / 2; // 0 = all calm (cyan), 1 = all heavy (ruby)
+      const r = Math.round(150 + t * 90);  // 150 → 240
+      const g = Math.round(220 - t * 45);  // 220 → 175
+      const b = Math.round(240 - t * 65);  // 240 → 175
+      pondRef.current?.setStoneTone(stoneId, { r, g, b });
+    }
   }, [consequencesLen]);
 
   // Compound flow

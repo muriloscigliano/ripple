@@ -9,6 +9,7 @@ export type PondHandle = {
   getIntersections(): Intersection[];
   setHover(x: number | null, y: number | null): void;
   setSlowMo(untilMs: number): void;
+  setStoneTone(id: UUID, tone: { r: number; g: number; b: number }): void;
   destroy(): void;
 };
 
@@ -42,6 +43,12 @@ export function createPond(container: HTMLElement): PondHandle {
   const emittedPairs = new Set<string>();
   const pendingEmissions: Intersection[] = [];
   const pairKey = (a: UUID, b: UUID) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+
+  // Per-stone ring tone — set by the conductor as consequences stream in.
+  // Default is the neutral cyan; shifts toward ruby for heavy mixes.
+  type Tone = { r: number; g: number; b: number };
+  const DEFAULT_TONE: Tone = { r: 170, g: 220, b: 240 };
+  const stoneTones = new Map<UUID, Tone>();
 
   // Hover state
   let hoverX: number | null = null;
@@ -195,23 +202,25 @@ export function createPond(container: HTMLElement): PondHandle {
           mainCtx.fill();
         }
 
-        // Ring at the leading wavefront
+        // Ring at the leading wavefront — color per stone tone
         if (radius > 8 && radius < diag && amp > 0.05) {
           const a0 = Math.min(1, amp * 1.2);
+          const tone = stoneTones.get(s.id) ?? DEFAULT_TONE;
+          const c = `${tone.r}, ${tone.g}, ${tone.b}`;
           // Outermost soft halo
-          mainCtx.strokeStyle = `rgba(150, 210, 235, ${a0 * 0.14})`;
+          mainCtx.strokeStyle = `rgba(${c}, ${a0 * 0.14})`;
           mainCtx.lineWidth = 14;
           mainCtx.beginPath();
           mainCtx.arc(s.cx, s.cy, radius, 0, Math.PI * 2);
           mainCtx.stroke();
           // Mid bloom
-          mainCtx.strokeStyle = `rgba(170, 220, 240, ${a0 * 0.30})`;
+          mainCtx.strokeStyle = `rgba(${c}, ${a0 * 0.30})`;
           mainCtx.lineWidth = 6;
           mainCtx.beginPath();
           mainCtx.arc(s.cx, s.cy, radius, 0, Math.PI * 2);
           mainCtx.stroke();
           // Sharp inner edge
-          mainCtx.strokeStyle = `rgba(200, 235, 250, ${a0 * 0.65})`;
+          mainCtx.strokeStyle = `rgba(${c}, ${a0 * 0.65})`;
           mainCtx.lineWidth = 1.5;
           mainCtx.beginPath();
           mainCtx.arc(s.cx, s.cy, radius, 0, Math.PI * 2);
@@ -313,6 +322,10 @@ export function createPond(container: HTMLElement): PondHandle {
 
     setSlowMo(untilMs) {
       slowMoUntil = untilMs;
+    },
+
+    setStoneTone(id, tone) {
+      stoneTones.set(id, tone);
     },
 
     destroy() {

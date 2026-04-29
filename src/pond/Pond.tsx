@@ -32,6 +32,7 @@ export const Pond = forwardRef<PondHandle, Props>(({ onDrop, onCursorMove }, ref
     getIntersections: () => handleRef.current?.getIntersections() ?? [],
     setHover: (x, y) => handleRef.current?.setHover(x, y),
     setSlowMo: (until) => handleRef.current?.setSlowMo(until),
+    setStoneTone: (id, tone) => handleRef.current?.setStoneTone(id, tone),
     destroy: () => handleRef.current?.destroy(),
   }));
 
