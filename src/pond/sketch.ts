@@ -47,7 +47,7 @@ export function createPond(container: HTMLElement): PondHandle {
   // Per-stone ring tone — set by the conductor as consequences stream in.
   // Default is the neutral cyan; shifts toward ruby for heavy mixes.
   type Tone = { r: number; g: number; b: number };
-  const DEFAULT_TONE: Tone = { r: 170, g: 220, b: 240 };
+  const DEFAULT_TONE: Tone = { r: 175, g: 230, b: 235 };
   const stoneTones = new Map<UUID, Tone>();
 
   // Hover state
@@ -192,11 +192,11 @@ export function createPond(container: HTMLElement): PondHandle {
         const amp =
           Math.exp(-DECAY_PER_MS * age) / Math.max(1, Math.sqrt(radius / REF_R));
 
-        // Splash flash (first 320ms only)
+        // Splash flash (first 320ms only) — slight warm tint, celebratory
         if (age < 320) {
           const k = 1 - age / 320;
           const dotR = 6 + (1 - k) * 14;
-          mainCtx.fillStyle = `rgba(190, 225, 240, ${k * 0.55})`;
+          mainCtx.fillStyle = `rgba(225, 230, 240, ${k * 0.55})`;
           mainCtx.beginPath();
           mainCtx.arc(s.cx, s.cy, dotR, 0, Math.PI * 2);
           mainCtx.fill();

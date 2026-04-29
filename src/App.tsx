@@ -120,10 +120,13 @@ export default function App() {
     }
     for (const [stoneId, scores] of byStone) {
       const sAvg = scores.reduce((a, b) => a + b, 0) / scores.length;
-      const t = (sAvg + 1) / 2; // 0 = all calm (cyan), 1 = all heavy (ruby)
-      const r = Math.round(150 + t * 90);  // 150 → 240
-      const g = Math.round(220 - t * 45);  // 220 → 175
-      const b = Math.round(240 - t * 65);  // 240 → 175
+      const t = (sAvg + 1) / 2; // 0 = all calm, 1 = all heavy
+      // Sunny cyan-gold ↔ warm ruby
+      // t=0  → rgb(175, 230, 235)  bright sky-cyan, hint of warmth
+      // t=1  → rgb(240, 175, 175)  warm ruby
+      const r = Math.round(175 + t * 65);
+      const g = Math.round(230 - t * 55);
+      const b = Math.round(235 - t * 60);
       pondRef.current?.setStoneTone(stoneId, { r, g, b });
     }
   }, [consequencesLen]);

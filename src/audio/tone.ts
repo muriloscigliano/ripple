@@ -13,11 +13,12 @@ let drop: Tone.MembraneSynth | null = null;
 let chime: Tone.Synth | null = null;
 let sharedReverb: Tone.Reverb | null = null;
 
+// Bright major-add9 voicings — open, hopeful, no melancholy
 const PAD_CHORDS: string[][] = [
-  ['C2', 'G2', 'Eb3'],
-  ['Bb1', 'F2', 'D3'],
-  ['Ab1', 'Eb2', 'C3'],
-  ['G1', 'D2', 'Bb2'],
+  ['C2', 'G2', 'E3', 'D4'],   // Cmaj9
+  ['A2', 'E3', 'C4', 'G4'],   // Am11 (bright, not blue)
+  ['F2', 'C3', 'A3', 'G4'],   // Fmaj9
+  ['G2', 'D3', 'B3', 'A4'],   // Gmaj9
 ];
 
 async function build() {
@@ -25,12 +26,12 @@ async function build() {
   sharedReverb = new Tone.Reverb({ decay: 8, wet: 0.55 }).toDestination();
   await sharedReverb.generate();
 
-  // Pad: PolySynth of triangle voices, low-passed, sent through reverb
-  const padFilter = new Tone.Filter({ frequency: 700, type: 'lowpass', Q: 1 });
-  const padDelay = new Tone.FeedbackDelay({ delayTime: '8n', feedback: 0.35, wet: 0.25 });
+  // Pad: brighter PolySynth, opened-up filter, slow shimmer
+  const padFilter = new Tone.Filter({ frequency: 1400, type: 'lowpass', Q: 0.7 });
+  const padDelay = new Tone.FeedbackDelay({ delayTime: '8n', feedback: 0.32, wet: 0.22 });
   pad = new Tone.PolySynth(Tone.Synth, {
     oscillator: { type: 'triangle' },
-    envelope: { attack: 2.4, decay: 0.5, sustain: 0.8, release: 4 },
+    envelope: { attack: 2.0, decay: 0.6, sustain: 0.85, release: 4.5 },
     volume: -22,
   });
   pad.chain(padFilter, padDelay, sharedReverb);
@@ -43,12 +44,12 @@ async function build() {
   }, '8n');
   padLoop.interval = 8;
 
-  // Drop: MembraneSynth tuned low + bandpass for "plip"
-  const dropFilter = new Tone.Filter({ frequency: 1100, type: 'bandpass', Q: 3 });
+  // Drop: MembraneSynth tuned brighter, watery "plop"
+  const dropFilter = new Tone.Filter({ frequency: 1350, type: 'bandpass', Q: 3.2 });
   drop = new Tone.MembraneSynth({
-    pitchDecay: 0.012,
-    octaves: 6,
-    envelope: { attack: 0.001, decay: 0.18, sustain: 0, release: 0.12 },
+    pitchDecay: 0.010,
+    octaves: 5,
+    envelope: { attack: 0.001, decay: 0.20, sustain: 0, release: 0.14 },
     volume: -10,
   });
   drop.chain(dropFilter, sharedReverb);
@@ -82,7 +83,7 @@ export async function unlockAudio(): Promise<void> {
 export function playDrop(): void {
   if (!started || !drop) return;
   try {
-    drop.triggerAttackRelease('C5', '32n');
+    drop.triggerAttackRelease('E5', '32n');
   } catch {
     // ignore — synth busy
   }
