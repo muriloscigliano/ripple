@@ -1,1 +1,0 @@
-{"root":["./src/App.tsx","./src/main.tsx","./src/store.ts","./src/types.ts","./src/engine/claude.ts","./src/engine/fallback.ts","./src/engine/stream.ts","./src/motion/presets.ts","./src/pond/Pond.tsx","./src/pond/sketch.ts","./src/prompts/consequences.ts","./src/ui/Title.tsx","./src/ui/Vignette.tsx"],"version":"5.9.3"}
