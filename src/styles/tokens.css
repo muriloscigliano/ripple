@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  /* Surface — the pond's world */
+  --color-surface-void: oklch(0.10 0.025 250);
+  --color-surface-deep: oklch(0.18 0.040 220);
+  --color-surface-mid: oklch(0.30 0.060 200);
+  --color-surface-light: oklch(0.78 0.080 195);
+
+  /* Severity */
+  --color-calm-bg: oklch(0.30 0.05 220 / 0.10);
+  --color-calm-border: oklch(0.65 0.12 220 / 0.40);
+  --color-calm-text: oklch(0.92 0.04 220);
+
+  --color-tense-bg: oklch(0.30 0.05 80 / 0.10);
+  --color-tense-border: oklch(0.75 0.13 80 / 0.40);
+  --color-tense-text: oklch(0.92 0.06 80);
+
+  --color-heavy-bg: oklch(0.30 0.06 20 / 0.10);
+  --color-heavy-border: oklch(0.65 0.18 20 / 0.40);
+  --color-heavy-text: oklch(0.92 0.08 20);
+
+  --color-compound-border: oklch(0.85 0.16 85 / 0.65);
+  --color-compound-glow: oklch(0.85 0.16 85 / 0.30);
+  --color-compound-text: oklch(0.96 0.10 85);
+
+  /* UI chrome */
+  --color-ink-primary: oklch(0.96 0.01 220);
+  --color-ink-secondary: oklch(0.65 0.02 220);
+  --color-ink-whisper: oklch(0.40 0.02 220);
+  --color-hairline: oklch(1 0 0 / 0.08);
+  --color-hairline-active: oklch(0.78 0.10 195 / 0.50);
+
+  /* Type */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-ui: "Inter", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", monospace;
+
+  --text-whisper: 0.6875rem;
+  --text-caption: 0.8125rem;
+  --text-body: 0.9375rem;
+  --text-card: 1.0625rem;
+  --text-title: 0.875rem;
+
+  --leading-card: 1.35;
+  --tracking-tight: -0.01em;
+  --tracking-display: 0;
+  --tracking-mono: 0.02em;
+
+  /* Motion */
+  --motion-instant: 120ms;
+  --motion-fast: 240ms;
+  --motion-medium: 480ms;
+  --motion-slow: 900ms;
+  --motion-cinematic: 1800ms;
+
+  --ease-water: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-drop: cubic-bezier(0.50, 0.00, 0.75, 0);
+  --ease-emerge: cubic-bezier(0.16, 1.00, 0.30, 1);
+  --ease-vanish: cubic-bezier(0.40, 0.00, 1.00, 1);
+
+  /* Spatial */
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --radius-input: 16px;
+
+  --pad-card-x: 18px;
+  --pad-card-y: 14px;
+  --pad-input-x: 22px;
+  --pad-input-y: 18px;
+
+  --gap-cards: 12px;
+  --max-card-w: 240px;
+
+  /* Effects */
+  --blur-card: 24px;
+  --blur-canvas: 0.5px;
+  --blur-vignette: 80px;
+
+  --shadow-card: 0 8px 32px oklch(0 0 0 / 0.35);
+  --shadow-compound: 0 0 32px var(--color-compound-glow), 0 12px 48px oklch(0 0 0 / 0.45);
+}
